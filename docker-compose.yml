@@ -1,0 +1,90 @@
+version: '3'
+services:
+
+  haproxy:
+    image: "haproxy"
+    ports:
+      - 8000:80
+    networks:
+      bench:
+        aliases:
+          - proxy
+    depends_on:
+      - backend
+    volumes:
+      - "./images/haproxy:/usr/local/etc/haproxy/"
+    command: haproxy -f /usr/local/etc/haproxy/haproxy.cfg
+
+  sozu:
+    image: "clevercloud/sozu"
+    ports:
+      - 8000:80
+    networks:
+      bench:
+        aliases:
+          - proxy
+    depends_on:
+      - backend
+    volumes:
+      - sozu-socket:/var/run/sozu
+      - ./images/sozu:/usr/local/etc/sozu/
+    command: /sozu start -c /usr/local/etc/sozu/config.toml
+
+  traefik:
+    image: "traefik"
+    networks:
+      bench:
+        aliases:
+          - proxy
+    ports:
+      - 8000:80 #HTTP port
+      - 8080:8080 #Webapi
+    depends_on:
+      - backend
+    volumes:
+      - ./images/traefik:/etc/traefik/
+      - /var/run/docker.sock:/var/run/docker.sock #Maybe we should let traefik discover the backend alone
+    command: traefik -c /etc/traefik/config.toml
+
+  envoy:
+    image: "envoy"
+    build: ./images/envoy
+    ports:
+      - 8000:10000
+      - 9901:9901
+    networks:
+      bench:
+        aliases:
+          - proxy
+    depends_on:
+      - backend
+    volumes:
+      - ./images/envoy/configs:/etc/envoy/
+
+  backend:
+    build: ./backend
+    networks:
+      bench:
+        ipv4_address: 172.16.238.200 # Currently Sozu can't process a DNS resolution
+    ports:
+      - 1026:1026
+
+  client:
+    build: ./client
+    networks:
+      - bench
+    depends_on:
+      - backend
+    ports:
+      - 4200:4200
+
+networks:
+  bench:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24
+
+volumes:
+  sozu-socket:

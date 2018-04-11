@@ -1,0 +1,19 @@
+logLevel = "DEBUG"
+
+defaultEntryPoints = ["http"]
+
+[entryPoints]
+    [entryPoints.http]
+    address = "0.0.0.0:80"
+
+[web]
+address = ":8080"
+
+[file]
+  [backends]
+    [backends.bench]
+      [backends.bench.servers.server1]
+      url = "http://backend:1026"
+  [frontends]
+    [frontends.frontend1]
+    backend = "bench"

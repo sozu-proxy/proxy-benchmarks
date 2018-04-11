@@ -1,0 +1,31 @@
+saved_state = "./state.json"
+
+log_level = "info"
+log_target = "stdout"
+
+command_socket = "/var/run/sozu/socket"
+command_buffer_size = 16384
+max_command_buffer_size = 163840
+
+worker_count = 2
+worker_automatic_restart = true
+handle_process_affinity = false
+
+# circuits breaker
+max_connections = 500
+max_buffers = 500
+buffer_size = 16384
+
+[http]
+address = "0.0.0.0"
+max_connections = 500
+port = 80
+buffer_size = 16384
+
+default_app_id = "BenchApp"
+
+[applications]
+
+[applications.BenchApp]
+hostname = "172.16.238.1" # See docker-compose network
+backends = [ "172.16.238.200:1026" ]
