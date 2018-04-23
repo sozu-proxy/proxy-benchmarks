@@ -69,6 +69,13 @@ services:
     ports:
       - 1026:1026
 
+  backend-nginx:
+    build: ./backend-nginx
+    networks:
+      - bench
+    ports:
+      - 1026:1026
+
   client:
     build: ./client
     networks:
